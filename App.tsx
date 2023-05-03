@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Button, Dimensions } from 'react-native';
+import { Text, View, StyleSheet, Dimensions, ScrollView, Alert, Button } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import * as cheerio from 'cheerio';
 
@@ -11,12 +11,13 @@ const { height } = Dimensions.get('window');
 export default function App() {
   const [hasPermission, setHasPermission] = useState(false);
   const [scanned, setScanned] = useState(false);
+  const [productList, setProductList] = useState<{name: string}[]>();
 
   const [barcode, setBarcode] = useState('');
-  const [data, setData] = useState({
+  const [data, setData] = useState<[{name: string, image: string,}]>([{
     name: '',
     image: '',
-  });
+  }]);
 
   useEffect(() => {
     const getBarCodeScannerPermissions = async () => {
@@ -39,10 +40,10 @@ export default function App() {
 
             const imageSrc = $('li div.prodimageinner img').attr('src');
 
-            setData({
+            setData([{
               name: productName,
               image: imageSrc!,
-            });
+            }]);
 
           })
           .catch((error) => console.log(error));
@@ -61,24 +62,61 @@ export default function App() {
     return <Text>No access to camera</Text>;
   }
 
+  const onAdd = (name: string) => {
+    setProductList([...productList!, { name }]);
+  };
+
+  const showProducts = () => {
+
+    let plist = '';
+    productList?.forEach((product) => {
+      plist += product.name + '\n\n';
+    });
+
+
+    if (plist === '') {
+      plist = 'Basket is empty';
+    }
+
+    Alert.alert(
+      'Basket',
+      plist,
+      [
+        {
+          text: 'Clear Basket',
+          onPress: () => setProductList([]),
+          style: 'cancel',
+        },
+        { text: 'OK', onPress: () => console.log('OK Pressed') },
+      ],
+      { cancelable: true },
+    );
+  };
+
+
   return (
-    <View style={styles.container}>
+      <View style={styles.maincontainer}>
       <BarCodeScanner
         onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-        style={{ width: '100%', height: '60%', backgroundColor: 'black', padding: 0, margin: 0 }}
-      />
-      {data && <ProductCard imageUri={data.image} name={data.name} />}
-      {(scanned && data.name == '' )&& <SearchField onsearch={setData} />}
+        style={{ width: '100%', height: '50%', backgroundColor: 'black', padding: 0, margin: 0 }}
+        />
+      <SearchField onSearch={setData} />
+      <ScrollView style={{ height: '40%', backgroundColor: 'white' }}>
+      {data.map((product, index) => (
+        <ProductCard key={index} name={product.name} imageUri={product.image} onAdd={onAdd} />
+      ))}
+      </ScrollView>
       {scanned && <ModernButton title={'Scan Again'} onPress={() => setScanned(false)} />}
+      <ModernButton title={'View Basket'} onPress={showProducts} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  maincontainer: {
     flex: 1,
     flexDirection: 'column',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     padding: 0,
     margin: 0,
   },

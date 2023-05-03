@@ -1,30 +1,45 @@
-import React from 'react';
+import { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, Text, View } from 'react-native';
 import * as cheerio from 'cheerio';
 
+
+interface ProductList {
+    name: string;
+    image: string;
+}
 interface SearchFieldProps {
-    onsearcg: () => void;
+    onSearch: (props: ProductList[]) => void;
 }
 
-export default function SearchField({ onsearch }: SearchFieldProps) {
+export default function SearchField({ onSearch }: SearchFieldProps) {
+    const [search, setSearch] = useState('');
+
     const onsubmit = () => {
-        // search for product
-        fetch('https://www.bestwaywholesale.co.uk/search?w=')
+        fetch('https://www.bestwaywholesale.co.uk/search?w=' + search)
             .then((response) => response.text())
             .then((html) => {
+                console.log('https://www.bestwaywholesale.co.uk/search?w=' + search);
                 const $ = cheerio.load(html);
-                const productName = $('#shop-products li:nth-child(1) .prodname a').text().trim();
+                const productList = $('#shop-products li');
 
-                const imageSrc = $('li div.prodimageinner img').attr('src');
+                let products: ProductList[] = [];
+                productList.each((index, element) => {
+                    const productName = $(element).find('.prodname a').text().trim();
+                    const imageSrc = $(element).find('div.prodimageinner img').attr('src');
 
-                onsearch({
-                    name: productName,
-                    image: imageSrc!,
+                    if (productName != ''){
+                        products.push({
+                            name: productName,
+                            image: imageSrc!,
+                        });
+                    }
+
                 });
+                
+                onSearch(products);
             })
             .catch((error) => console.log(error));
     };
-
 
     return (
         <View style={styles.container}>
@@ -35,6 +50,8 @@ export default function SearchField({ onsearch }: SearchFieldProps) {
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType="web-search"
+                onChangeText={(text) => setSearch(text)}
+                value={search}
             />
             <TouchableOpacity style={styles.button} onPress={onsubmit}>
                 <Text style={styles.buttonText}>Search</Text>
