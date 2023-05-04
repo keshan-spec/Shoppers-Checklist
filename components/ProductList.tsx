@@ -2,16 +2,14 @@ import {useState } from 'react';
 import { View, Text, Image, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 
+import { PList } from '../utils/types';
+
 interface ProductCardProps {
-    name: string;
-    imageUri: string;
-    supplier?: string;
-    onAdd?: (data: {name: string,
-        image: string,
-        supplier?: string}) => void;
+    data: PList;
+    onAdd?: (data: PList) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({name, imageUri, onAdd, supplier}) => {
+const ProductCard: React.FC<ProductCardProps> = ({onAdd, data: { name, image, supplier } }) => {
     if (!name) {
         return (
             <View style={styles.container}>
@@ -25,7 +23,7 @@ const ProductCard: React.FC<ProductCardProps> = ({name, imageUri, onAdd, supplie
         Alert.alert('Added to cart');
         onAdd({
             name,
-            image: imageUri,
+            image: image,
             supplier
         });
     };
@@ -33,7 +31,7 @@ const ProductCard: React.FC<ProductCardProps> = ({name, imageUri, onAdd, supplie
     return (
             <TouchableOpacity style={styles.container}>
             <View style={styles.imageContainer}>
-                <Image source={{ uri: imageUri }} style={styles.image} />
+                <Image source={{ uri: image }} style={styles.image} />
             </View>
             <View style={styles.detailsContainer}>
                 <Text style={styles.name}>{name}</Text>

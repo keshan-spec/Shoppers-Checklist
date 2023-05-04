@@ -5,21 +5,16 @@ import * as cheerio from 'cheerio';
 // Utils
 import { fetchQuery, fetchBarCode } from '../utils/api';
 
-
-interface ProductList {
-    name: string;
-    image: string;
-    supplier?: string;
-}
+import { PList } from '../utils/types';
 interface SearchFieldProps {
-    onSearch: (props: ProductList[]) => void;
+    onSearch: (props: PList[]) => void;
 }
 
 export default function SearchField({ onSearch }: SearchFieldProps) {
     const [search, setSearch] = useState('');
 
     const onsubmit = async () => {
-        let products: ProductList[] = [];
+        let products: PList[] = [];
 
         let supplier1 = await fetchQuery(search);
 
