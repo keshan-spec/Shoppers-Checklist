@@ -2,10 +2,14 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, Text, View } from 'react-native';
 import * as cheerio from 'cheerio';
 
+// Utils
+import { fetchQuery, fetchBarCode } from '../utils/api';
+
 
 interface ProductList {
     name: string;
     image: string;
+    supplier?: string;
 }
 interface SearchFieldProps {
     onSearch: (props: ProductList[]) => void;
@@ -14,31 +18,44 @@ interface SearchFieldProps {
 export default function SearchField({ onSearch }: SearchFieldProps) {
     const [search, setSearch] = useState('');
 
-    const onsubmit = () => {
-        fetch('https://www.bestwaywholesale.co.uk/search?w=' + search)
-            .then((response) => response.text())
-            .then((html) => {
-                console.log('https://www.bestwaywholesale.co.uk/search?w=' + search);
-                const $ = cheerio.load(html);
-                const productList = $('#shop-products li');
+    const onsubmit = async () => {
+        let products: ProductList[] = [];
 
-                let products: ProductList[] = [];
-                productList.each((index, element) => {
-                    const productName = $(element).find('.prodname a').text().trim();
-                    const imageSrc = $(element).find('div.prodimageinner img').attr('src');
+        let supplier1 = await fetchQuery(search);
 
-                    if (productName != ''){
-                        products.push({
-                            name: productName,
-                            image: imageSrc!,
-                        });
-                    }
+        let $ = cheerio.load(supplier1);
+        $('div.col-sm-3').each((i, el) => {
+            const productName = $(el).find('.lst-txt-box span.listing-title').text().trim();
+            const productImage = $(el).find('img').attr('src');
 
+            if (productName) {
+                products.push({
+                    name: productName,
+                    image: productImage!,
+                    supplier: 'Dhamecha'
                 });
-                
-                onSearch(products);
-            })
-            .catch((error) => console.log(error));
+            }
+        });
+
+        let supplier2 = await fetchBarCode(search)
+
+        $ = cheerio.load(supplier2);
+        const productList = $('#shop-products li');
+
+        productList.each((_, element) => {
+            const productName = $(element).find('.prodname a').text().trim();
+            const imageSrc = $(element).find('div.prodimageinner img').attr('src');
+
+            if (productName != '') {
+                products.push({
+                    name: productName,
+                    image: imageSrc!,
+                    supplier: 'Bestway'
+                });
+            }
+        });
+
+        onSearch(products);
     };
 
     return (
