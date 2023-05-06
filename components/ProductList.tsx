@@ -1,4 +1,4 @@
-import {useState } from 'react';
+import React, {useState } from 'react';
 import { View, Text, Image, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -12,8 +12,9 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({onAdd, data: { name, image, supplier } }) => {
     if (!name) {
         return (
-            <View style={styles.container}>
-                <Text>No product found</Text>
+            <View style={styles.noResultContainer}>
+                <Text style={styles.noResult}>No products found</Text>
+                <Image source={require('../assets/no-results.jpg')} style={{ width: 200, height: 200 }} />
             </View>
         )
     }
@@ -49,6 +50,17 @@ const ProductCard: React.FC<ProductCardProps> = ({onAdd, data: { name, image, su
 };
 
 const styles = StyleSheet.create({
+    noResult: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginVertical: 20,
+    },
+    noResultContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     container: {
         backgroundColor: '#fff',
         borderRadius: 8,

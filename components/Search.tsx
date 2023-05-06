@@ -8,13 +8,15 @@ import { fetchQuery, fetchBarCode } from '../utils/api';
 import { PList } from '../utils/types';
 interface SearchFieldProps {
     onSearch: (props: PList[]) => void;
+    onLoading: (props: boolean) => void;
 }
 
-export default function SearchField({ onSearch }: SearchFieldProps) {
+export default function SearchField({ onSearch, onLoading }: SearchFieldProps) {
     const [search, setSearch] = useState('');
 
     const onsubmit = async () => {
         let products: PList[] = [];
+        onLoading(true);
 
         let supplier1 = await fetchQuery(search);
 
@@ -50,6 +52,14 @@ export default function SearchField({ onSearch }: SearchFieldProps) {
             }
         });
 
+        if (products.length == 0) {
+            products.push({
+                name: '',
+                image: '',
+            });
+        }
+
+        onLoading(false);
         onSearch(products);
     };
 
